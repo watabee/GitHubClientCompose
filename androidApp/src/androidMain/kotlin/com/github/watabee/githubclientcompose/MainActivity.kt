@@ -1,4 +1,4 @@
-package com.myapplication
+package com.github.watabee.githubclientcompose
 
 import MainView
 import android.os.Bundle

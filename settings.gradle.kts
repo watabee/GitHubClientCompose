@@ -1,4 +1,4 @@
-rootProject.name = "My application"
+rootProject.name = "GitHubClientCompose"
 
 include(":androidApp")
 include(":shared")
