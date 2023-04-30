@@ -1,0 +1,17 @@
+query GetUsers($first: Int!, $after: String) {
+    search(type: USER, query: "", first: $first, after: $after) {
+        edges {
+            node {
+                ...on User {
+                    avatarUrl
+                    login
+                    id
+                }
+            }
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+    }
+}

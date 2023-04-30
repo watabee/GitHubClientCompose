@@ -3,19 +3,29 @@ package feature.users
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,12 +37,109 @@ import androidx.compose.ui.unit.sp
 import com.seiko.imageloader.model.ImageRequest
 import com.seiko.imageloader.rememberAsyncImagePainter
 import data.model.GitHubUser
+import data.repository.GitHubRepository
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 @Composable
-fun GitHubUserList(users: List<GitHubUser>) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+fun GitHubUserList() {
+    val repository = remember { GitHubRepository() }
+    var uiState: GitHubUserListUiState by remember { mutableStateOf(GitHubUserListUiState.Loading) }
+    var after: String? = remember { null }
+    val coroutineScope = rememberCoroutineScope()
+
+    // TODO: move logic to viewmodel
+    val load: suspend () -> Unit = remember(repository, after) {
+        {
+            val successState = uiState as? GitHubUserListUiState.Success
+            try {
+                uiState = successState?.copy(isLoadingMore = true, isLoadMoreError = false) ?: GitHubUserListUiState.Loading
+                val result = repository.getUsers(after = after)
+                after = if (result.pageInfo.hasNextPage) result.pageInfo.endCursor else null
+
+                val users = successState?.users.orEmpty() + result.edges?.mapNotNull {
+                    it?.node?.onUser?.let { user ->
+                        GitHubUser(
+                            id = user.id,
+                            name = user.login,
+                            avatarUrl = user.avatarUrl
+                        )
+                    }
+                }.orEmpty()
+
+                uiState = GitHubUserListUiState.Success(
+                    isLoadingMore = false,
+                    isLoadMoreError = false,
+                    users = users.distinctBy { it.id }
+                )
+            } catch (e: Throwable) {
+                uiState = successState?.copy(isLoadingMore = false, isLoadMoreError = true) ?: GitHubUserListUiState.Error
+            }
+        }
+    }
+    LaunchedEffect(repository) {
+        load()
+    }
+
+    when (val state = uiState) {
+        GitHubUserListUiState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        GitHubUserListUiState.Error -> {
+            // TODO: retry
+            Text("Error")
+        }
+
+        is GitHubUserListUiState.Success -> {
+            GitHubUserList(
+                users = state.users,
+                isLoadingMore = state.isLoadingMore,
+                onLoadMore = onLoadMore@{
+                    val successState = uiState as? GitHubUserListUiState.Success ?: return@onLoadMore
+                    if (successState.isLoadingMore || successState.isLoadMoreError) {
+                        return@onLoadMore
+                    }
+                    coroutineScope.launch {
+                        load()
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GitHubUserList(users: List<GitHubUser>, isLoadingMore: Boolean, onLoadMore: () -> Unit) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.canScrollForward }
+            .distinctUntilChanged()
+            .filter { !it }
+            .collect {
+                onLoadMore()
+            }
+    }
+
+    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
         items(items = users, key = { it.id }) { user ->
             GitHubUserItem(user)
+        }
+        if (isLoadingMore) {
+            item(key = "loading") {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }

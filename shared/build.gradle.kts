@@ -1,8 +1,13 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import java.util.Properties
+
 plugins {
     kotlin("multiplatform")
     kotlin("native.cocoapods")
     id("com.android.library")
     id("org.jetbrains.compose")
+    id("com.apollographql.apollo3")
+    id("com.codingfeline.buildkonfig")
 }
 
 kotlin {
@@ -35,6 +40,8 @@ kotlin {
                 implementation(compose.components.resources)
 
                 implementation("io.github.qdsfdhvh:image-loader:1.4.0")
+
+                implementation("com.apollographql.apollo3:apollo-runtime:3.8.1")
             }
         }
         val androidMain by getting {
@@ -74,5 +81,25 @@ android {
     }
     kotlin {
         jvmToolchain(11)
+    }
+}
+
+buildkonfig {
+    packageName = "com.github.watabee.githubclientcompose"
+
+    defaultConfigs {
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream().buffered())
+
+        (properties.getProperty("githubToken"))?.let {
+            buildConfigField(STRING, "githubToken", it)
+        }
+    }
+}
+
+apollo {
+    service("service") {
+        packageName.set("com.github.watabee.githubclientcompose.data.graphql")
+        mapScalarToKotlinString("URI")
     }
 }
