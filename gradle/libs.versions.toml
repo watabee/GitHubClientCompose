@@ -1,0 +1,30 @@
+[versions]
+agp = "7.4.1"
+kotlin = "1.8.20"
+compose = "1.4.0"
+androidxActivity = "1.7.1"
+androidxAppcompat = "1.6.1"
+androidxCore = "1.10.0"
+apollo = "3.8.1"
+buildkonfig = "0.13.3"
+compileSdk = "33"
+minSdk = "24"
+targetSdk = "33"
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-native-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+apollo = { id = "com.apollographql.apollo3", version.ref = "apollo" }
+buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfig" }
+
+[libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+apollo-runtime = { module = "com.apollographql.apollo3:apollo-runtime", version.ref = "apollo" }
+imageloader = { module = "io.github.qdsfdhvh:image-loader", version = "1.4.0" }
