@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.native.cocoapods)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.compose)
     alias(libs.plugins.apollo)
     alias(libs.plugins.buildkonfig)
@@ -43,6 +44,7 @@ kotlin {
                 implementation(libs.apollo.runtime)
 
                 api(libs.voyager.navigator)
+                implementation(libs.koject.core)
             }
         }
         val androidMain by getting {
@@ -62,6 +64,14 @@ kotlin {
             iosSimulatorArm64Main.dependsOn(this)
         }
     }
+}
+
+dependencies {
+    val processor = libs.koject.processor.app.get().toString()
+    add("kspAndroid", processor)
+    add("kspIosX64", processor)
+    add("kspIosArm64", processor)
+    add("kspIosSimulatorArm64", processor)
 }
 
 android {
