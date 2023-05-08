@@ -3,9 +3,10 @@ query GetUsers($first: Int!, $after: String) {
         edges {
             node {
                 ...on User {
-                    avatarUrl
+                    avatarUrl(size: 100)
                     login
                     id
+                    bio
                 }
             }
         }

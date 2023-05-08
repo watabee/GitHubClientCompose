@@ -101,7 +101,7 @@ private fun GitHubUserItem(user: GitHubUser) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val request = remember(user.avatarUrl) {
                 ImageRequest(user.avatarUrl)
@@ -116,7 +116,14 @@ private fun GitHubUserItem(user: GitHubUser) {
                 painter = painter,
                 contentDescription = null
             )
-            Text(text = user.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, overflow = TextOverflow.Ellipsis, maxLines = 1)
+
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(text = user.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, overflow = TextOverflow.Ellipsis, maxLines = 1)
+
+                if (!user.bio.isNullOrBlank()) {
+                    Text(text = user.bio, fontSize = 12.sp, color = Color.Gray, overflow = TextOverflow.Ellipsis, maxLines = 3)
+                }
+            }
         }
         Divider()
     }

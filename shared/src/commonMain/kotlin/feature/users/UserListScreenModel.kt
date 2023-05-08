@@ -45,7 +45,8 @@ class UserListScreenModel(private val gitHubRepository: GitHubRepository) : Scre
                         GitHubUser(
                             id = user.id,
                             name = user.login,
-                            avatarUrl = user.avatarUrl
+                            avatarUrl = user.avatarUrl,
+                            bio = user.bio
                         )
                     }
                 }.orEmpty()
