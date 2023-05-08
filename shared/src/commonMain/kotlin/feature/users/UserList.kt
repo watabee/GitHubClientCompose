@@ -20,11 +20,7 @@ import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,53 +33,13 @@ import androidx.compose.ui.unit.sp
 import com.seiko.imageloader.model.ImageRequest
 import com.seiko.imageloader.rememberAsyncImagePainter
 import data.model.GitHubUser
-import data.repository.GitHubRepository
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.launch
 
 @Composable
-fun GitHubUserList() {
-    val repository = remember { GitHubRepository() }
-    var uiState: GitHubUserListUiState by remember { mutableStateOf(GitHubUserListUiState.Loading) }
-    var after: String? = remember { null }
-    val coroutineScope = rememberCoroutineScope()
-
-    // TODO: move logic to viewmodel
-    val load: suspend () -> Unit = remember(repository, after) {
-        {
-            val successState = uiState as? GitHubUserListUiState.Success
-            try {
-                uiState = successState?.copy(isLoadingMore = true, isLoadMoreError = false) ?: GitHubUserListUiState.Loading
-                val result = repository.getUsers(after = after)
-                after = if (result.pageInfo.hasNextPage) result.pageInfo.endCursor else null
-
-                val users = successState?.users.orEmpty() + result.edges?.mapNotNull {
-                    it?.node?.onUser?.let { user ->
-                        GitHubUser(
-                            id = user.id,
-                            name = user.login,
-                            avatarUrl = user.avatarUrl
-                        )
-                    }
-                }.orEmpty()
-
-                uiState = GitHubUserListUiState.Success(
-                    isLoadingMore = false,
-                    isLoadMoreError = false,
-                    users = users.distinctBy { it.id }
-                )
-            } catch (e: Throwable) {
-                uiState = successState?.copy(isLoadingMore = false, isLoadMoreError = true) ?: GitHubUserListUiState.Error
-            }
-        }
-    }
-    LaunchedEffect(repository) {
-        load()
-    }
-
-    when (val state = uiState) {
-        GitHubUserListUiState.Loading -> {
+fun UserList(uiState: UserListUiState, onLoadMore: () -> Unit) {
+    when (uiState) {
+        UserListUiState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -92,31 +48,23 @@ fun GitHubUserList() {
             }
         }
 
-        GitHubUserListUiState.Error -> {
+        UserListUiState.Error -> {
             // TODO: retry
             Text("Error")
         }
 
-        is GitHubUserListUiState.Success -> {
-            GitHubUserList(
-                users = state.users,
-                isLoadingMore = state.isLoadingMore,
-                onLoadMore = onLoadMore@{
-                    val successState = uiState as? GitHubUserListUiState.Success ?: return@onLoadMore
-                    if (successState.isLoadingMore || successState.isLoadMoreError) {
-                        return@onLoadMore
-                    }
-                    coroutineScope.launch {
-                        load()
-                    }
-                }
+        is UserListUiState.Success -> {
+            UserList(
+                users = uiState.users,
+                isLoadingMore = uiState.isLoadingMore,
+                onLoadMore = onLoadMore
             )
         }
     }
 }
 
 @Composable
-private fun GitHubUserList(users: List<GitHubUser>, isLoadingMore: Boolean, onLoadMore: () -> Unit) {
+private fun UserList(users: List<GitHubUser>, isLoadingMore: Boolean, onLoadMore: () -> Unit) {
     val listState = rememberLazyListState()
     LaunchedEffect(listState) {
         snapshotFlow { listState.canScrollForward }

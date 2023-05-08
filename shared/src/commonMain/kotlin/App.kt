@@ -1,10 +1,11 @@
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import feature.users.GitHubUserList
+import feature.users.UserList
+import feature.users.UserListUiState
 
 @Composable
 fun App() {
     MaterialTheme {
-        GitHubUserList()
+        UserList(uiState = UserListUiState.Loading, onLoadMore = {})
     }
 }
