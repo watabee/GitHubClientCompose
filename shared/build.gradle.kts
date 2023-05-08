@@ -41,6 +41,8 @@ kotlin {
 
                 implementation(libs.imageloader)
                 implementation(libs.apollo.runtime)
+
+                api(libs.voyager.navigator)
             }
         }
         val androidMain by getting {

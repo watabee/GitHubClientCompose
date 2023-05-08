@@ -6,6 +6,7 @@ androidxActivity = "1.7.1"
 androidxAppcompat = "1.6.1"
 androidxCore = "1.10.0"
 apollo = "3.8.1"
+voyager = "1.0.0-rc05"
 buildkonfig = "0.13.3"
 compileSdk = "33"
 minSdk = "24"
@@ -28,3 +29,4 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 apollo-runtime = { module = "com.apollographql.apollo3:apollo-runtime", version.ref = "apollo" }
 imageloader = { module = "io.github.qdsfdhvh:image-loader", version = "1.4.0" }
+voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
